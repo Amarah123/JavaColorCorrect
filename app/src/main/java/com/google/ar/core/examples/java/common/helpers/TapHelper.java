@@ -23,7 +23,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 /**
- * Helper to detect taps using Android GestureDetector, and pass the taps between UI thread and
+ * Helper to correct taps using Android GestureDetector, and pass the taps between UI thread and
  * render thread.
  */
 public final class TapHelper implements OnTouchListener {

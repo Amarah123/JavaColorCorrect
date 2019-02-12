@@ -84,7 +84,7 @@ public class ComputerVisionActivity extends AppCompatActivity implements GLSurfa
   private CpuImageDisplayRotationHelper cpuImageDisplayRotationHelper;
   private CpuImageTouchListener cpuImageTouchListener;
   private final CpuImageRenderer cpuImageRenderer = new CpuImageRenderer();
-  private final EdgeDetector edgeDetector = new EdgeDetector();
+  private final ColorCorrection colorCorrection = new ColorCorrection();
 
   // This lock prevents changing resolution as the frame is being rendered. ARCore requires all
   // cpu images to be released before changing resolution.
@@ -310,11 +310,16 @@ public class ComputerVisionActivity extends AppCompatActivity implements GLSurfa
         }
 
         ByteBuffer processedImageBytesGrayscale =
-            edgeDetector.detect(
+            colorCorrection.correct(
                 image.getWidth(),
                 image.getHeight(),
                 image.getPlanes()[0].getRowStride(),
-                image.getPlanes()[0].getBuffer());
+                image.getPlanes()[0].getBuffer(),
+                    image.getPlanes()[1].getRowStride(),
+            image.getPlanes()[1].getBuffer(),
+            image.getPlanes()[2].getRowStride(),
+            image.getPlanes()[2].getBuffer())[0];
+
 
         cpuImageRenderer.drawWithCpuImage(
             frame,
@@ -335,36 +340,36 @@ public class ComputerVisionActivity extends AppCompatActivity implements GLSurfa
   /* Demonstrates how to access a CPU image using a download from GPU */
   private void renderProcessedImageGpuDownload(Frame frame) {
     // If there is a frame being requested previously, acquire the pixels and process it.
-    if (gpuDownloadFrameBufferIndex >= 0) {
-      TextureReaderImage image = textureReader.acquireFrame(gpuDownloadFrameBufferIndex);
+//    if (gpuDownloadFrameBufferIndex >= 0) {
+//      TextureReaderImage image = textureReader.acquireFrame(gpuDownloadFrameBufferIndex);
+//
+//      if (image.format != TextureReaderImage.IMAGE_FORMAT_I8) {
+//        throw new IllegalArgumentException(
+//            "Expected image in I8 format, got format " + image.format);
+//      }
 
-      if (image.format != TextureReaderImage.IMAGE_FORMAT_I8) {
-        throw new IllegalArgumentException(
-            "Expected image in I8 format, got format " + image.format);
-      }
-
-      ByteBuffer processedImageBytesGrayscale =
-          edgeDetector.detect(image.width, image.height, /* stride= */ image.width, image.buffer);
-
-      // You should always release frame buffer after using. Otherwise the next call to
-      // submitFrame() may fail.
-      textureReader.releaseFrame(gpuDownloadFrameBufferIndex);
-
-      cpuImageRenderer.drawWithCpuImage(
-          frame,
-          IMAGE_WIDTH,
-          IMAGE_HEIGHT,
-          processedImageBytesGrayscale,
-          cpuImageDisplayRotationHelper.getViewportAspectRatio(),
-          cpuImageDisplayRotationHelper.getCameraToDisplayRotation());
-
-    } else {
-      cpuImageRenderer.drawWithoutCpuImage();
-    }
-
-    // Submit request for the texture from the current frame.
-    gpuDownloadFrameBufferIndex =
-        textureReader.submitFrame(cpuImageRenderer.getTextureId(), TEXTURE_WIDTH, TEXTURE_HEIGHT);
+//      ByteBuffer processedImageBytesGrayscale =
+////          colorCorrection.correct(image.width, image.height, /* stride= */ image.width, image.buffer);
+//
+//      // You should always release frame buffer after using. Otherwise the next call to
+//      // submitFrame() may fail.
+//      textureReader.releaseFrame(gpuDownloadFrameBufferIndex);
+//
+//      cpuImageRenderer.drawWithCpuImage(
+//          frame,
+//          IMAGE_WIDTH,
+//          IMAGE_HEIGHT,
+//          processedImageBytesGrayscale,
+//          cpuImageDisplayRotationHelper.getViewportAspectRatio(),
+//          cpuImageDisplayRotationHelper.getCameraToDisplayRotation());
+//
+//    } else {
+//      cpuImageRenderer.drawWithoutCpuImage();
+//    }
+//
+//    // Submit request for the texture from the current frame.
+//    gpuDownloadFrameBufferIndex =
+//        textureReader.submitFrame(cpuImageRenderer.getTextureId(), TEXTURE_WIDTH, TEXTURE_HEIGHT);
   }
 
   public void onLowResolutionRadioButtonClicked(View view) {
