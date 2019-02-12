@@ -17,6 +17,7 @@ package com.google.ar.core.examples.java.computervision;
 import android.content.Context;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
+import android.opengl.GLES30;
 import android.opengl.GLSurfaceView;
 import android.view.Surface;
 import com.google.ar.core.Frame;
@@ -28,6 +29,8 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
+
+import static android.opengl.GLES30.GL_RGB8;
 
 /**
  * This class renders the screen with images from both GPU and CPU. The top half of the screen shows
@@ -170,7 +173,7 @@ public class CpuImageRenderer {
    * @param frame The last {@code Frame} returned by {@link Session#update()}.
    * @param imageWidth The processed image width.
    * @param imageHeight The processed image height.
-   * @param processedImageBytesGrayscale the processed bytes of the image, grayscale par only. Can
+   * @param processedImageBytes the processed bytes of the image, grayscale par only. Can
    *     be null.
    * @param screenAspectRatio The aspect ratio of the screen.
    * @param cameraToDisplayRotation The rotation of camera with respect to the display. The value is
@@ -180,24 +183,24 @@ public class CpuImageRenderer {
       Frame frame,
       int imageWidth,
       int imageHeight,
-      ByteBuffer processedImageBytesGrayscale,
+      ByteBuffer processedImageBytes,
       float screenAspectRatio,
       int cameraToDisplayRotation) {
 
     // Apply overlay image buffer
-    if (processedImageBytesGrayscale != null) {
-      GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
-      GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, overlayTextureId);
-      GLES20.glTexImage2D(
-          GLES20.GL_TEXTURE_2D,
+    if (processedImageBytes != null) {
+      GLES30.glActiveTexture(GLES30.GL_TEXTURE1);
+      GLES30.glBindTexture(GLES30.GL_TEXTURE_2D, overlayTextureId);
+      GLES30.glTexImage2D(
+          GLES30.GL_TEXTURE_2D,
           0,
-          GLES20.GL_LUMINANCE,
+          GLES30.GL_RGB,
           imageWidth,
           imageHeight,
           0,
-          GLES20.GL_LUMINANCE,
-          GLES20.GL_UNSIGNED_BYTE,
-          processedImageBytesGrayscale);
+          GLES30.GL_RGB,
+          GLES30.GL_UNSIGNED_BYTE,
+          processedImageBytes);
     }
 
     updateTextureCoordinates(

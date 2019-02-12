@@ -309,7 +309,7 @@ public class ComputerVisionActivity extends AppCompatActivity implements GLSurfa
               "Expected image in YUV_420_888 format, got format " + image.getFormat());
         }
 
-        ByteBuffer processedImageBytesGrayscale =
+        ByteBuffer processedImageBytes =
             colorCorrection.correct(
                 image.getWidth(),
                 image.getHeight(),
@@ -318,14 +318,14 @@ public class ComputerVisionActivity extends AppCompatActivity implements GLSurfa
                     image.getPlanes()[1].getRowStride(),
             image.getPlanes()[1].getBuffer(),
             image.getPlanes()[2].getRowStride(),
-            image.getPlanes()[2].getBuffer())[0];
+            image.getPlanes()[2].getBuffer());
 
 
         cpuImageRenderer.drawWithCpuImage(
             frame,
             image.getWidth(),
             image.getHeight(),
-            processedImageBytesGrayscale,
+            processedImageBytes,
             cpuImageDisplayRotationHelper.getViewportAspectRatio(),
             cpuImageDisplayRotationHelper.getCameraToDisplayRotation());
 

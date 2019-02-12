@@ -34,7 +34,7 @@ public class ColorCorrection {
    * @return bytes of the processed image, where the byte value is the strength of the edge at that
    *     pixel. Number of bytes is width * height, row padding (if any) is removed.
    */
-  public synchronized ByteBuffer[] correct(int width, int height, int ystride, ByteBuffer yinput, int ustride, ByteBuffer uinput, int vstride, ByteBuffer vinput) {
+  public synchronized ByteBuffer correct(int width, int height, int ystride, ByteBuffer yinput, int ustride, ByteBuffer uinput, int vstride, ByteBuffer vinput) {
     // Reallocate yinput byte array if its size is different from the required size.
       if (ystride * height > yinputPixels.length) {
           yinputPixels = new byte[ystride * height];
@@ -47,26 +47,58 @@ public class ColorCorrection {
       }
 
     // Allocate a new output byte array.
-    byte[] youtputPixels = new byte[width * height];
-      byte[] uoutputPixels = new byte[width * height];
-      byte[] voutputPixels = new byte[width * height];
+    byte[] routputPixels = new byte[width * height];
+      byte[] goutputPixels = new byte[width * height];
+      byte[] boutputPixels = new byte[width * height];
 
     // Copy yinput buffer into a java array for ease of access. This is not the most optimal
     // way to process an image, but used here for simplicity.
-    yinput.position(0);
+      yinput.position(0);
+
+      uinput.position(0);
+
+      vinput.position(0);
 
     // Note: On certain devices with specific resolution where the ystride is not equal to the width.
     // In such situation the memory allocated for the frame may not be exact multiple of ystride x
     // height hence the capacity of the ByteBuffer could be less. To handle such situations it will
     // be better to transfer the exact amount of image bytes to the destination bytes.
-    yinput.get(yinputPixels, 0, yinput.capacity());
+      yinput.get(yinputPixels, 0, yinput.capacity());
+      uinput.get(uinputPixels, 0, uinput.capacity());
+      vinput.get(vinputPixels, 0, vinput.capacity());
 
     // Detect edges.
-    for (int j = 1; j < height - 1; j++) {
-      for (int i = 1; i < width - 1; i++) {
-        youtputPixels [(j*width ) + i ] = yinputPixels[(j * width )+i ];
-          uoutputPixels [(j*width ) + i ] = uinputPixels[(j * width )+i ];
-          voutputPixels [(j*width ) + i ] = vinputPixels[(j * width )+i ];
+
+      byte[] outputArray = new byte[width*height*3];
+      int index = 0;
+    for (int j = 0; j < height; j++) {
+      for (int i = 0; i < width; i++) {
+          int r, g, b, y, u, v;
+          y = yinputPixels[(j * width )+i ];
+          u = uinputPixels[(j * width )+i ];
+          v = vinputPixels[(j * width )+i ];
+          r = (int) (y + (1.370705 * (v-128)));
+          g = (int) ((y - (0.698001 * (v-128))) - (0.337633 * (u-128)));
+          b = (int) (y + (1.732446 * (u-128)));
+
+//          routputPixels [(j*width ) + i ] = (byte) Math.max(0, Math.min(255, r));
+//          goutputPixels [(j*width ) + i ] = (byte) Math.max(0, Math.min(255, g));
+//          boutputPixels [(j*width ) + i ] = (byte) Math.max(0, Math.min(255, b));
+//          outputArray[index] = (byte) Math.max(0, Math.min(255, y));
+//          outputArray[index+1] = (byte) Math.max(0, Math.min(255, 255));
+//          outputArray[index+2] = (byte) Math.max(0, Math.min(255, y));
+          outputArray[index] = (byte) 128;
+          outputArray[index+1] = (byte) 0;
+          outputArray[index+2] = (byte) 255;
+//          outputArray[index] = (byte) Math.max(0, Math.min(255, y));
+//          outputArray[index+1] = (byte) Math.max(0, Math.min(255, u));
+//          outputArray[index+2] = (byte) Math.max(0, Math.min(255, v));
+          index += 3;
+
+
+//          routputPixels [(j*width ) + i ] =
+//          goutputPixels [(j*width ) + i ] = uinputPixels[(j * width )+i ];
+//          boutputPixels [(j*width ) + i ] = vinputPixels[(j * width )+i ];
         // Offset of the pixel at [i, j] of the yinput image.
 
 //        int offset = (j * ystride) + i;
@@ -100,6 +132,7 @@ public class ColorCorrection {
 //        }
       }
     }
-    return new ByteBuffer[] {ByteBuffer.wrap(youtputPixels), ByteBuffer.wrap(uoutputPixels), ByteBuffer.wrap(voutputPixels)};
+    return ByteBuffer.wrap(outputArray);
+//    return new ByteBuffer[] {ByteBuffer.wrap(routputPixels), ByteBuffer.wrap(goutputPixels), ByteBuffer.wrap(boutputPixels)};
   }
 }
